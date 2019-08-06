@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
   ~ Copyright 2015-present Open Networking Foundation
   ~
@@ -14,10 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.p4.template" origin="p4.org" version="1.0-SNAPSHOT"
-        title="P4-ONOS Template" category="Traffic Steering" url="http://p4.org"
-        featuresRepo="mvn:org.p4/template/1.0-SNAPSHOT/xml/features"
-        features="template" apps="org.onosproject.drivers.bmv2,org.onosproject.lldpprovider,org.onosproject.hostprovider,org.onosproject.gui">
-    <description>Template for programming on ONOS-P4 platform.</description>
-    <artifact>mvn:org.p4/template/1.0-SNAPSHOT</artifact>
-</app>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="template-1.0-SNAPSHOT">
+    <feature name="template" version="1.0-SNAPSHOT"
+             description="Template for programming on ONOS-P4 platform.">
+        <feature>onos-api</feature>
+        <bundle>mvn:org.p4/template/1.0-SNAPSHOT</bundle>
+    </feature>
+</features>

@@ -20,23 +20,23 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.p4</groupId>
-    <artifactId>srv6-tutorial</artifactId>
+    <artifactId>template</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
-    <description>P4D2 SRv6 tutorial app</description>
+    <description>P4-ONOS Template</description>
     <url>http://p4.org</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.version>2.1.0</onos.version>
-        <onos.app.name>org.p4.srv6-tutorial</onos.app.name>
-        <onos.app.title>P4D2 SRv6 Tutorial App</onos.app.title>
+        <onos.app.name>org.p4.template</onos.app.name>
+        <onos.app.title>P4-ONOS Template</onos.app.title>
         <onos.app.origin>p4.org</onos.app.origin>
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>http://p4.org</onos.app.url>
         <onos.app.readme>
-            Provides SRv6 capabilities to a leaf-spine network of P4 switches
+            Template for programming on ONOS-P4 platform.
         </onos.app.readme>
         <onos.app.requires>
             org.onosproject.drivers.bmv2,
