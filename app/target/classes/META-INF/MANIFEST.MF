@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1565059710545
+Bnd-LastModified: 1565110048857
 Build-Jdk: 1.8.0_212
 Built-By: sebastian
 Bundle-Description: P4D2 SRv6 tutorial app
