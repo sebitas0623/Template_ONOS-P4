@@ -22,10 +22,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.device.DefaultPortStatistics;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.*;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.host.HostService;
@@ -36,6 +33,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellHandle;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeReadClient;
 import org.osgi.service.component.annotations.Activate;
@@ -53,6 +51,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
 
 /**
  * App component that configures devices to provide L2 bridging capabilities.
@@ -104,10 +104,17 @@ public class MyComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfService piPipeconfService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private P4RuntimeController p4RuntimeController;
+
 
 
     private final DeviceListener deviceListener = new MyComponent.InternalDeviceListener();
     Map<String, DeviceId> swIDs = new HashMap<String, DeviceId>();
+
+    private static final long DEFAULT_P4_DEVICE_ID = 1;
+    private PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("c_ingress.rx_port_counter");
+    private PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("c_ingress.tx_port_counter");
 
     //--------------------------------------------------------------------------
     // COMPONENT ACTIVATION.
@@ -130,25 +137,80 @@ public class MyComponent {
     }
 
 
-    public String p4statisticsSW1(){
+    public Collection<PortStatistics> p4statisticsSW1(){
         if (swIDs.containsKey("s1")){
-            PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("c_ingress.rx_port_counter");
-            PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("c_ingress.tx_port_counter");
-
-
-
             PiPipeconf piPipeconf = piPipeconfService.getPipeconf(AppConstants.PIPECONF_ID).get();
 
-            PiCounterModel countIngress = piPipeconf.pipelineModel().counter(INGRESS_COUNTER_ID).get();
+            Collection<PortStatistics> conts = P4Counters(swIDs.get("s1"),piPipeconf);
+
+            /*PiCounterModel countIngress = piPipeconf.pipelineModel().counter(INGRESS_COUNTER_ID).get();
             PiCounterModel countEgress = piPipeconf.pipelineModel().counter(EGRESS_COUNTER_ID).get();
-
             PiCounterModel.Unit counttype = countIngress.unit();
-            long countsize = countIngress.size();
+            long countsize = countIngress.size();*/
 
-            return Long.toString(countsize);
+            return conts;
         }else{
-            return  "false";
+            log.info("El switch S1 no está instanciado aún");
+            return null;
         }
+    }
+
+
+    public Collection<PortStatistics> P4Counters(DeviceId deviceId, PiPipeconf piPipeconf){
+        //se instancia el cliente p4Runtime para interactuar con los servidores (Switches)
+        P4RuntimeClient cliente = p4RuntimeController.get(deviceId);
+        // Prepare PortStatistics objects to return, one per port of this device.
+        Map<Long, DefaultPortStatistics.Builder> portStatBuilders = Maps.newHashMap();
+        deviceService
+                .getPorts(deviceId)
+                .forEach(p -> portStatBuilders.put(p.number().toLong(),
+                        DefaultPortStatistics.builder()
+                                .setPort(p.number())
+                                .setDeviceId(deviceId)));
+        // Generate the counter cell IDs.
+        Set<PiCounterCellId> counterCellIds = Sets.newHashSet();
+        portStatBuilders.keySet().forEach(p -> {
+            // Counter cell/index = port number.
+            counterCellIds.add(PiCounterCellId.ofIndirect(INGRESS_COUNTER_ID, p));
+            counterCellIds.add(PiCounterCellId.ofIndirect(EGRESS_COUNTER_ID, p));
+        });
+        Set<PiCounterCellHandle> counterCellHandles = counterCellIds.stream()
+                .map(id -> PiCounterCellHandle.of(deviceId, id))
+                .collect(Collectors.toSet());
+        // Query the device.
+        Collection<PiCounterCell> counterEntryResponse = cliente.read(
+                DEFAULT_P4_DEVICE_ID, piPipeconf)
+                .handles(counterCellHandles).submitSync()
+                .all(PiCounterCell.class);
+
+        //log.info("{}",counterEntryResponse);
+
+        // Process response.
+        counterEntryResponse.forEach(counterCell -> {
+            if (counterCell.cellId().counterType() != INDIRECT) {
+                log.warn("Invalid counter data type {}, skipping", counterCell.cellId().counterType());
+                return;
+            }
+            if (!portStatBuilders.containsKey(counterCell.cellId().index())) {
+                log.warn("Unrecognized counter index {}, skipping", counterCell);
+                return;
+            }
+            DefaultPortStatistics.Builder statsBuilder = portStatBuilders.get(counterCell.cellId().index());
+            if (counterCell.cellId().counterId().equals(INGRESS_COUNTER_ID)) {
+                statsBuilder.setPacketsReceived(counterCell.data().packets());
+                statsBuilder.setBytesReceived(counterCell.data().bytes());
+            } else if (counterCell.cellId().counterId().equals(EGRESS_COUNTER_ID)) {
+                statsBuilder.setPacketsSent(counterCell.data().packets());
+                statsBuilder.setBytesSent(counterCell.data().bytes());
+            } else {
+                log.warn("Unrecognized counter ID {}, skipping", counterCell);
+            }
+        });
+        return portStatBuilders
+                .values()
+                .stream()
+                .map(DefaultPortStatistics.Builder::build)
+                .collect(Collectors.toList());
     }
 
 
@@ -172,7 +234,6 @@ public class MyComponent {
         @Override
         public void event(DeviceEvent event) {
             final DeviceId deviceId = event.subject().id();
-            //log.info(".i.i.i.i.i.i.i.i.i.i.i.i.i.i.i.i.i.i.i mi puto dispositivo {}", deviceId.toString());
             if (deviceService.isAvailable(deviceId)) {
                 // A P4Runtime device is considered available in ONOS when there
                 // is a StreamChannel session open and the pipeline
@@ -180,7 +241,6 @@ public class MyComponent {
                 mainComponent.getExecutorService().execute(() -> {
                     log.info("{} event! deviceId={}", event.type(), deviceId);
                     storeIdSwitches(deviceId);
-                    //getstatp4(deviceId);
                 });
             }
         }
@@ -191,7 +251,6 @@ public class MyComponent {
         String id = deviceId.toString();
         String key = id.substring(id.length()-2, id.length());
         swIDs.put(key,deviceId);
-        //log.info("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ {}", key);
     }
 
 }

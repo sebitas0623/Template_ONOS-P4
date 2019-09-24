@@ -17,6 +17,7 @@
 package org.p4.onos.template.pipeconf;
 
 import org.onosproject.net.behaviour.Pipeliner;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;

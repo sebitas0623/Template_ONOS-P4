@@ -35,8 +35,10 @@ control c_ingress(inout headers_t hdr,
 
     // We use these counters to count packets/bytes received/sent on each port.
     // For each counter we instantiate a number of cells equal to MAX_PORTS.
-    counter(MAX_PORTS, CounterType.packets_and_bytes) tx_port_counter;
-    counter(MAX_PORTS, CounterType.packets_and_bytes) rx_port_counter;
+    counter(MAX_PORTS, CounterType.packets) tx_port_counter;
+    counter(MAX_PORTS, CounterType.packets) rx_port_counter;
+
+    Register(MAX_PORTS) port_pkt_ip_bytes_in;
 
     action send_to_cpu() {
         standard_metadata.egress_spec = CPU_PORT;
@@ -83,6 +85,9 @@ control c_ingress(inout headers_t hdr,
     // Defines the processing applied by this control block. You can see this as
     // the main function applied to every packet received by the switch.
     apply {
+        // Update port counters at index = ingress or egress port.
+       
+
         if (standard_metadata.ingress_port == CPU_PORT) {
             // Packet received from CPU_PORT, this is a packet-out sent by the
             // controller. Skip table processing, set the egress port as
@@ -102,13 +107,13 @@ control c_ingress(inout headers_t hdr,
 
         }
 
-        // Update port counters at index = ingress or egress port.
         if (standard_metadata.egress_spec < MAX_PORTS) {
             tx_port_counter.count((bit<32>) standard_metadata.egress_spec);
         }
         if (standard_metadata.ingress_port < MAX_PORTS) {
             rx_port_counter.count((bit<32>) standard_metadata.ingress_port);
         }
+        
      }
 }
 
