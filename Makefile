@@ -3,7 +3,7 @@ ONOS_MD5 = 6ca21242cf837a726cfbcc637107026b
 ONOS_URL = http://repo1.maven.org/maven2/org/onosproject/onos-releases/$(ONOS_VERSION)/onos-$(ONOS_VERSION).tar.gz
 ONOS_TAR_PATH = ~/onos.tar.gz
 APP_OAR = app/target/template-1.0-SNAPSHOT.oar
-OCI = 192.168.1.189
+OCI = 172.28.128.3
 
 p4:
 	cd p4src && make build

@@ -1,12 +1,8 @@
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/pipeconf/InterpreterImpl.java
+/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/cli/MyCommand.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/MainComponent.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/AppConstants.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/MyComponent.java
-/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/common/Srv6DeviceConfig.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/pipeconf/PipeconfLoader.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/pipeconf/PipelinerImpl.java
-/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/cli/Srv6SidCompleter.java
-/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/cli/Srv6ClearCommand.java
 /home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/common/Utils.java
-/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/Srv6Component.java
-/home/sebastian/Template_ONOS-P4/app/src/main/java/org/p4/onos/template/cli/Srv6InsertCommand.java

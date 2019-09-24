@@ -6,10 +6,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
@@ -20,7 +17,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.p4.onos.template.common.Srv6DeviceConfig;
 import org.p4.onos.template.pipeconf.PipeconfLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,14 +29,13 @@ import java.util.concurrent.TimeUnit;
 import static org.p4.onos.template.common.Utils.sleep;
 
 /**
- * A component which among other things registers the Srv6DeviceConfig to the
+ * A component which among other things registers the P4Template to the
  * netcfg subsystem.
  */
 @Component(immediate = true, service = MainComponent.class)
 public class MainComponent {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(MainComponent.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(MainComponent.class.getName());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
@@ -65,47 +60,29 @@ public class MainComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService compCfgService;
 
-    private final ConfigFactory<DeviceId, Srv6DeviceConfig> srv6ConfigFactory =
-            new ConfigFactory<DeviceId, Srv6DeviceConfig>(
-                    SubjectFactories.DEVICE_SUBJECT_FACTORY, Srv6DeviceConfig.class, Srv6DeviceConfig.CONFIG_KEY) {
-                @Override
-                public Srv6DeviceConfig createConfig() {
-                    return new Srv6DeviceConfig();
-                }
-            };
+
 
     private ApplicationId appId;
-
     // For the sake of simplicity and to facilitate reading logs, use a
     // single-thread executor to serialize all configuration tasks.
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+
+
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(AppConstants.APP_NAME);
-
         // Wait to remove flow and groups from previous executions.
         waitPreviousCleanup();
-
-        /*compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                                      "fallbackFlowPollFrequency", "4", false);
-        compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                                      "fallbackGroupPollFrequency", "3", false);
-        compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
-                                      "requestIpv6ND", "true", false);
-*/
-        configRegistry.registerConfigFactory(srv6ConfigFactory);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        configRegistry.unregisterConfigFactory(srv6ConfigFactory);
-
         cleanUp();
-
         log.info("Stopped");
     }
+
 
     /**
      * Returns the application ID.

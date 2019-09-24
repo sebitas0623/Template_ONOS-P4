@@ -158,7 +158,8 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Karaf-Commands>org.p4.p4d2.tutorial.cli</Karaf-Commands>
+                        <!--<Karaf-Commands>org.p4.p4d2.tutorial.cli</Karaf-Commands>-->
+                        <Karaf-Commands>org.p4.onos.template.cli</Karaf-Commands>
                     </instructions>
                 </configuration>
             </plugin>
