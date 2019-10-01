@@ -67,13 +67,9 @@ struct headers_t {
     packet_in_header_t          packet_in;
 }
 
-struct parser_metadata_t {
-    bit<16>  numElements;
-}
-
 // Metadata can be used to carry information from one table to another.
 struct metadata_t {
-    parser_metadata_t   parser_metadata;
+    bit<32>  contador;
 }
 
 #endif

@@ -38,8 +38,6 @@ control c_ingress(inout headers_t hdr,
     counter(MAX_PORTS, CounterType.packets) tx_port_counter;
     counter(MAX_PORTS, CounterType.packets) rx_port_counter;
 
-    Register(MAX_PORTS) port_pkt_ip_bytes_in;
-
     action send_to_cpu() {
         standard_metadata.egress_spec = CPU_PORT;
         // Packets sent to the controller needs to be prepended with the
